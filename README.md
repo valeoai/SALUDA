@@ -19,7 +19,7 @@
 
 <br/>
 
-[![Arxiv](https://img.shields.io/badge/paper-arxiv-B31B1B.svg)](https://arxiv.org/abs/2212.05867)
+[![Arxiv](https://img.shields.io/badge/paper-arxiv.2304.03251-B31B1B.svg)](https://arxiv.org/abs/2304.03251)
 
 
 ![Overview](doc/architecture2.png)
