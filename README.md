@@ -6,7 +6,7 @@
 [Björn Michele](https://github.com/BjoernMichele)<sup>1,3</sup>&nbsp;&nbsp;
 [Alexandre Boulch](https://boulch.eu/)<sup>1</sup>&nbsp;&nbsp;&nbsp;
 [Gilles Puy](https://sites.google.com/site/puygilles/)<sup>1</sup>&nbsp;&nbsp;&nbsp;
-[Tuan-Hung Vu](https://scholar.google.com/citations?user=xYDkHEsAAAAJ&hl=en&oi=ao)<sup>1</sup>&nbsp;&nbsp;&nbsp;
+[Tuan-Hung Vu](https://tuanhungvu.github.io/)<sup>1</sup>&nbsp;&nbsp;&nbsp;
 [Renaud Marlet](http://imagine.enpc.fr/~marletr/)<sup>1,2</sup>&nbsp;&nbsp;
 [Nicolas Courty](https://people.irisa.fr/Nicolas.Courty/)<sup>3</sup>&nbsp;&nbsp;&nbsp;
 
