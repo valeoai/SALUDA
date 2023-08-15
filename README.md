@@ -74,10 +74,8 @@ python da_baseline_hyper.py --name='EVAL_SALUDA_ns_sk' with da_ns_sk network_dec
 
 DA Setting | Method | Backbone | Link |
 ---|---|---|---|
-nuScenes to SemanticKITTI | SALUDA |TorchSparse-MinkUNet  | [CKPT](https://github.com/valeoai/SALUDA/releases/download/v0.0.0/ns_sk_saluda.zip) |
-nuScenes to SemanticKITTI | SALUDA + CoSMix |TorchSparse-MinkUNet  |  [CKPT](https://github.com/valeoai/SALUDA/releases/download/v0.0.0/ns_sk_saluda_cosmix.zip) |
-SyntheticLiDAR to SemanticKITTI | SALUDA |TorchSparse-MinkUNet  |  [CKPT](https://github.com/valeoai/SALUDA/releases/download/v0.0.0/syn_sk_saluda.zip) |
-SyntheticLiDAR to SemanticKITTI | SALUDA + CoSMix |TorchSparse-MinkUNet  | [CKPT](https://github.com/valeoai/SALUDA/releases/download/v0.0.0/syn_sk_saluda_cosmix.zip) |
+nuScenes to SemanticKITTI | SALUDA w/o ST |TorchSparse-MinkUNet  | [CKPT](https://github.com/valeoai/SALUDA/releases/download/v0.0.0/ns_sk_saluda.zip) |
+SyntheticLiDAR to SemanticKITTI | SALUDA  w/o ST |TorchSparse-MinkUNet  |  [CKPT](https://github.com/valeoai/SALUDA/releases/download/v0.0.0/syn_sk_saluda.zip) |
 
 The checkpoint should is placed in a folder. The link to this folder should be given to the "ckpt_path_model" parameter.  
 
