@@ -3,7 +3,7 @@
 
 # SALUDA: Surface-based Automotive Lidar Unsupervised Domain Adaptation
 
-[Björn Michele](https://github.com/BjoernMichele)<sup>1,3</sup>&nbsp;&nbsp;
+[Björn Michele](https://bjoernmichele.com)<sup>1,3</sup>&nbsp;&nbsp;
 [Alexandre Boulch](https://boulch.eu/)<sup>1</sup>&nbsp;&nbsp;&nbsp;
 [Gilles Puy](https://sites.google.com/site/puygilles/)<sup>1</sup>&nbsp;&nbsp;&nbsp;
 [Tuan-Hung Vu](https://tuanhungvu.github.io/)<sup>1</sup>&nbsp;&nbsp;&nbsp;
@@ -62,22 +62,13 @@ Evaluation on SyntheticLiDAR to SemanticKITTI:
 python da_baseline_hyper.py --name='EVAL_SALUDA_syn_sk' with da_syn_sk network_decoder=InterpAllRadiusNoDirsNet network_decoder_k=1.0 save_dir=results_val/ ckpt_path_model=path/to/folder
 ```
 
-
-Evaluation of a SALUDA model which was refined with CoSMix: 
-
-```
-python da_baseline_hyper.py --name='EVAL_SALUDA_ns_sk' with da_ns_sk network_decoder=InterpAllRadiusNoDirsNet network_decoder_k=1.0 save_dir=results_val/ cosmix_backbone=True ckpt_path_model=path/to/folder
-```
-
 ---
 ## Model zoo
 
 DA Setting | Method | Backbone | Link |
 ---|---|---|---|
-nuScenes to SemanticKITTI | SALUDA |TorchSparse-MinkUNet  | [CKPT](https://github.com/valeoai/SALUDA/releases/download/v0.0.0/ns_sk_saluda.zip) |
-nuScenes to SemanticKITTI | SALUDA + CoSMix |TorchSparse-MinkUNet  |  [CKPT](https://github.com/valeoai/SALUDA/releases/download/v0.0.0/ns_sk_saluda_cosmix.zip) |
-SyntheticLiDAR to SemanticKITTI | SALUDA |TorchSparse-MinkUNet  |  [CKPT](https://github.com/valeoai/SALUDA/releases/download/v0.0.0/syn_sk_saluda.zip) |
-SyntheticLiDAR to SemanticKITTI | SALUDA + CoSMix |TorchSparse-MinkUNet  | [CKPT](https://github.com/valeoai/SALUDA/releases/download/v0.0.0/syn_sk_saluda_cosmix.zip) |
+nuScenes to SemanticKITTI | SALUDA w/o ST |TorchSparse-MinkUNet  | [CKPT](https://github.com/valeoai/SALUDA/releases/download/v0.0.0/ns_sk_saluda_wo_st.zip) |
+SyntheticLiDAR to SemanticKITTI | SALUDA  w/o ST |TorchSparse-MinkUNet  |  [CKPT](https://github.com/valeoai/SALUDA/releases/download/v0.0.0/syn_sk_saluda_wo_st.zip) |
 
 The checkpoint should is placed in a folder. The link to this folder should be given to the "ckpt_path_model" parameter.  
 
