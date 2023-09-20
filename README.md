@@ -3,7 +3,7 @@
 
 # SALUDA: Surface-based Automotive Lidar Unsupervised Domain Adaptation
 
-[Björn Michele](https://github.com/BjoernMichele)<sup>1,3</sup>&nbsp;&nbsp;
+[Björn Michele](https://bjoernmichele.com)<sup>1,3</sup>&nbsp;&nbsp;
 [Alexandre Boulch](https://boulch.eu/)<sup>1</sup>&nbsp;&nbsp;&nbsp;
 [Gilles Puy](https://sites.google.com/site/puygilles/)<sup>1</sup>&nbsp;&nbsp;&nbsp;
 [Tuan-Hung Vu](https://tuanhungvu.github.io/)<sup>1</sup>&nbsp;&nbsp;&nbsp;
@@ -60,13 +60,6 @@ Evaluation on SyntheticLiDAR to SemanticKITTI:
 
 ```
 python da_baseline_hyper.py --name='EVAL_SALUDA_syn_sk' with da_syn_sk network_decoder=InterpAllRadiusNoDirsNet network_decoder_k=1.0 save_dir=results_val/ ckpt_path_model=path/to/folder
-```
-
-
-Evaluation of a SALUDA model which was refined with CoSMix: 
-
-```
-python da_baseline_hyper.py --name='EVAL_SALUDA_ns_sk' with da_ns_sk network_decoder=InterpAllRadiusNoDirsNet network_decoder_k=1.0 save_dir=results_val/ cosmix_backbone=True ckpt_path_model=path/to/folder
 ```
 
 ---
