@@ -22,6 +22,13 @@
 [![Arxiv](https://img.shields.io/badge/paper-arxiv.2304.03251-B31B1B.svg)](https://arxiv.org/abs/2304.03251)
 
 
+<br/>
+
+SALUDA has been accepted at 3DV 2024
+
+<br/>
+
+
 ![Overview](doc/architecture2.png)
 
 </div>
