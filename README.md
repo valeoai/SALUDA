@@ -51,7 +51,7 @@ Additionally, [Sacred](https://github.com/IDSIA/sacred) 0.8.3 is used.
 ---
 ## Datasets 
 
-For our experiments we use the following dataset [nuScenes](https://www.nuscenes.org/nuscenes), [SemanticKITTI](http://www.semantic-kitti.org/dataset.html), [SynthLiDAR](https://github.com/xiaoaoran/SynLiDAR) and [SemanticPOSS](http://www.poss.pku.edu.cn/semanticposs.html)
+For our experiments we use the following datasets: [nuScenes](https://www.nuscenes.org/nuscenes), [SemanticKITTI](http://www.semantic-kitti.org/dataset.html), [SynthLiDAR](https://github.com/xiaoaoran/SynLiDAR) and [SemanticPOSS](http://www.poss.pku.edu.cn/semanticposs.html)
 
 Please note that we use in all our experiments the official SubDataset of SynthLiDAR. 
 The datasets should be placed in: data/
