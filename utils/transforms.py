@@ -13,7 +13,6 @@ import torch.nn.functional as F
 import torch_geometric.transforms as T
 import torch_sparse
 
-
 from .all_transforms import *
 
 torchsparse_found = importlib.util.find_spec("torchsparse") is not None
@@ -56,8 +55,8 @@ def da_get_inputs(config):
 
     return in_channels_source, inputs_source, in_channels_target, inputs_target
 
-def da_get_transforms(config, train=True, downstream=False, keep_orignal_data=False, source_flag=True):
-    logging.info(f"Transforms - Train {train} - Downstream {downstream}")
+def da_get_transforms(config, train=True, source_flag=True):
+    logging.info(f"Transforms - {'Train' if train else 'Test'} - {'Source' if source_flag else 'Target'} ")
     _, inputs_source, _, inputs_target = da_get_inputs(config)
     if source_flag:
         # If it is SOURCE
@@ -67,12 +66,6 @@ def da_get_transforms(config, train=True, downstream=False, keep_orignal_data=Fa
         inputs = inputs_target
 
     transforms = []
-
-    if keep_orignal_data:
-        logging.info("Transforms - Dupplicate - pos, y")
-        transforms.append(Dupplicate(["pos", "y"], "original_"))
-
-    logging.info(f"Transforms - No voxel decimation")
 
     # create directions to the sensors
     logging.info("Transforms - CreateDirs")
@@ -101,7 +94,6 @@ def da_get_transforms(config, train=True, downstream=False, keep_orignal_data=Fa
         FixedPoints(config["non_manifold_points"], item_list=["pos_non_manifold", "occupancies", "intensities_non_manifold", "label_non_manifold"]),
         ]
 
-    logging.info("Take all points as inputs")
 
     if "TorchSparse" in config["network_backbone"]:
         logging.info("Transforms - TorchSparseQuantize")

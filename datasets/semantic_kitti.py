@@ -1,11 +1,9 @@
 import importlib
 import os
-
 import torch
 import torch.nn.functional as F
 from torch._C import Value
 from torch_geometric.data import Data, Dataset
-
 import logging
 from pathlib import Path
 
@@ -13,6 +11,83 @@ from pathlib import Path
 import numpy as np
 import yaml
 
+def class_mapping_da(config, config_file):
+    with open(config_file, 'r') as stream:
+            doc = yaml.safe_load(stream)
+            all_labels = doc['labels']
+            
+    #Changes of mapping in DA case
+    if config["source_dataset_name"] == "NuScenes" or  config["target_dataset_name"] == "NuScenes":
+        # Original class mapping from Complete&Label paper
+        learning_map={
+            0 : 0,     # "unlabeled"
+            1 : 0,     # "outlier" mapped to "unlabeled" --------------------------mapped
+            10: 1,     # "car"
+            11: 2,    # "bicycle"
+            13: 5,     # "bus" mapped to "other-vehicle" --------------------------mapped
+            15: 3,     # "motorcycle"
+            16: 0,     # "on-rails" mapped to "other-vehicle" ---------------------mapped
+            18: 4,     # "truck"
+            20: 5,     # "other-vehicle"
+            30: 6,     # "person"
+            31: 0,     # "bicyclist"
+            32: 0,     # "motorcyclist"
+            40: 7,     # "road"
+            44: 7,    # "parking"
+            48: 8,    # "sidewalk"
+            49: 0,    # "other-ground"
+            50: 0,    # "building"
+            51: 0,    # "fence"
+            52: 0,    # "other-structure" mapped to "unlabeled" ------------------mapped
+            60: 7,     # "lane-marking" to "road" ---------------------------------mapped
+            70: 10,    # "vegetation"
+            71: 10,    # "trunk"
+            72: 9,    # "terrain"
+            80: 0,    # "pole"
+            81: 0,    # "traffic-sign"
+            99: 0,    # "other-object" to "unlabeled" ----------------------------mapped
+            252: 1,    # "moving-car" to "car" ------------------------------------mapped
+            253: 0,    # "moving-bicyclist" to "bicyclist" ------------------------mapped
+            254: 6,    # "moving-person" to "person" ------------------------------mapped
+            255: 0,    # "moving-motorcyclist" to "motorcyclist" ------------------mapped
+            256: 0,    # "moving-on-rails" mapped to "other-vehicle" --------------mapped
+            257: 5,    # "moving-bus" mapped to "other-vehicle" -------------------mapped
+            258: 4,    # "moving-truck" to "truck" --------------------------------mapped
+            259: 5    # "moving-other"-vehicle to "other-vehicle" ----------------mapped
+        }
+        learning_map_inv ={ # inverse of previous map
+            0: 0,      # "unlabeled", and others ignored
+            1: 10,     # "car"
+            2: 11,     # "bicycle"
+            3: 15,     # "motorcycle"
+            4: 18,     # "truck"
+            5: 20,     # "other-vehicle"
+            6: 30,     # "person"
+            #: 31,     # "bicyclist" No differentitation to bicycle
+            #8: 32,     # "motorcyclist" No differentiation to motorcycle
+            7: 40,     # "road"
+            #: 44,    # "parking" No differentation to road
+            8: 48,    # "sidewalk"
+            #: 49,    # "other-ground" Ignored
+            #: 50,    # "building"
+            #: 51,    # "fence"
+            10: 70,    # "vegetation"
+            #: 71,    # "trunk"is in vegetation
+            9: 72,    # "terrain"
+            #: 80,    # "pole"
+            #: 81,    # "traffic-sign"
+        
+        }
+    elif config["source_dataset_name"] == "SynLidar" or  config["target_dataset_name"] == "SynLidar":
+        # Mapping with SynLiDAR
+        learning_map = doc['learning_map']
+        learning_map_inv = doc['learning_map_inv']
+
+    else:
+        learning_map = doc['learning_map']
+        learning_map_inv = doc['learning_map_inv']
+    
+    return learning_map, learning_map_inv
 
 class SemanticKITTI(Dataset):
     def __init__(self, root, split="training", transform=None, dataset_size=None,
@@ -66,90 +141,16 @@ class SemanticKITTI(Dataset):
         else:
             raise ValueError('number of frames has to be >= 1')
 
-        with open(config_file, 'r') as stream:
-            doc = yaml.safe_load(stream)
-            all_labels = doc['labels']
+        learning_map, learning_map_inv = class_mapping_da(config, config_file)
             
-            if self.da_flag: 
-                #Changes of mapping in DA case
-                if self.config["source_dataset_name"] == "NuScenes" or  self.config["target_dataset_name"] == "NuScenes":
-                    # Original class mapping from Complete&Label paper
-                    learning_map={
-                        0 : 0,     # "unlabeled"
-                        1 : 0,     # "outlier" mapped to "unlabeled" --------------------------mapped
-                        10: 1,     # "car"
-                        11: 2,    # "bicycle"
-                        13: 5,     # "bus" mapped to "other-vehicle" --------------------------mapped
-                        15: 3,     # "motorcycle"
-                        16: 0,     # "on-rails" mapped to "other-vehicle" ---------------------mapped
-                        18: 4,     # "truck"
-                        20: 5,     # "other-vehicle"
-                        30: 6,     # "person"
-                        31: 0,     # "bicyclist"
-                        32: 0,     # "motorcyclist"
-                        40: 7,     # "road"
-                        44: 7,    # "parking"
-                        48: 8,    # "sidewalk"
-                        49: 0,    # "other-ground"
-                        50: 0,    # "building"
-                        51: 0,    # "fence"
-                        52: 0,    # "other-structure" mapped to "unlabeled" ------------------mapped
-                        60: 7,     # "lane-marking" to "road" ---------------------------------mapped
-                        70: 10,    # "vegetation"
-                        71: 10,    # "trunk"
-                        72: 9,    # "terrain"
-                        80: 0,    # "pole"
-                        81: 0,    # "traffic-sign"
-                        99: 0,    # "other-object" to "unlabeled" ----------------------------mapped
-                        252: 1,    # "moving-car" to "car" ------------------------------------mapped
-                        253: 0,    # "moving-bicyclist" to "bicyclist" ------------------------mapped
-                        254: 6,    # "moving-person" to "person" ------------------------------mapped
-                        255: 0,    # "moving-motorcyclist" to "motorcyclist" ------------------mapped
-                        256: 0,    # "moving-on-rails" mapped to "other-vehicle" --------------mapped
-                        257: 5,    # "moving-bus" mapped to "other-vehicle" -------------------mapped
-                        258: 4,    # "moving-truck" to "truck" --------------------------------mapped
-                        259: 5    # "moving-other"-vehicle to "other-vehicle" ----------------mapped
-                    }
-                    learning_map_inv ={ # inverse of previous map
-                        0: 0,      # "unlabeled", and others ignored
-                        1: 10,     # "car"
-                        2: 11,     # "bicycle"
-                        3: 15,     # "motorcycle"
-                        4: 18,     # "truck"
-                        5: 20,     # "other-vehicle"
-                        6: 30,     # "person"
-                        #: 31,     # "bicyclist" No differentitation to bicycle
-                        #8: 32,     # "motorcyclist" No differentiation to motorcycle
-                        7: 40,     # "road"
-                        #: 44,    # "parking" No differentation to road
-                        8: 48,    # "sidewalk"
-                        #: 49,    # "other-ground" Ignored
-                        #: 50,    # "building"
-                        #: 51,    # "fence"
-                        10: 70,    # "vegetation"
-                        #: 71,    # "trunk"is in vegetation
-                        9: 72,    # "terrain"
-                        #: 80,    # "pole"
-                        #: 81,    # "traffic-sign"
-                    
-                    }
-                elif self.config["source_dataset_name"] == "SynLidar" or  self.config["target_dataset_name"] == "SynLidar":
-                    # Mapping with SynLiDAR
-                    learning_map = doc['learning_map']
-                    learning_map_inv = doc['learning_map_inv']
-
-            else:
-                learning_map = doc['learning_map']
-                learning_map_inv = doc['learning_map_inv']
-            
-            self.learning_map = np.zeros((np.max([k for k in learning_map.keys()]) + 1), dtype=np.int32)
-            
-            for k, v in learning_map.items():
-                self.learning_map[k] = v
-            
-            self.learning_map_inv = np.zeros((np.max([k for k in learning_map_inv.keys()]) + 1), dtype=np.int32)
-            for k, v in learning_map_inv.items():
-                self.learning_map_inv[k] = v
+        self.learning_map = np.zeros((np.max([k for k in learning_map.keys()]) + 1), dtype=np.int32)
+        
+        for k, v in learning_map.items():
+            self.learning_map[k] = v
+        
+        self.learning_map_inv = np.zeros((np.max([k for k in learning_map_inv.keys()]) + 1), dtype=np.int32)
+        for k, v in learning_map_inv.items():
+            self.learning_map_inv[k] = v
           
     def get_weights(self):
         weights = torch.ones(self.N_LABELS)

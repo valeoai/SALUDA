@@ -3,20 +3,24 @@ import logging
 import os
 from functools import partial
 
-
 import numpy as np
+import scipy
 import torch
 import yaml
+from scipy.stats import entropy
+from sklearn.metrics import confusion_matrix
 
 import networks
+import utils.metrics as metrics
 from utils.collate_function import collate_function
-from utils.logging_files_functions import (logs_file, train_log_data_da,
+from utils.logging_files_functions import (train_log_data_da,
                                            val_log_data_da)
 from utils.transforms import da_get_inputs, da_get_transforms
 from utils.utils import validation
+from utils.lcp import logs_file
 
 
-def da_get_dataloader(source_DatasetClass, target_DatasetClass, config, net, val=1, train_shuffle=True, cat_list_changed=[]):
+def da_get_dataloader(source_DatasetClass, target_DatasetClass, config, net, train_shuffle=True, cat_list_changed=[]):
     source_train_transforms = da_get_transforms(config, train=True, source_flag=True)
     source_test_transforms = da_get_transforms(config, train=False, source_flag=True)
     target_train_transforms = da_get_transforms(config, train=True, source_flag=False)
@@ -30,33 +34,13 @@ def da_get_dataloader(source_DatasetClass, target_DatasetClass, config, net, val
                split=config["train_split"], transform=target_train_transforms,
                da_flag=True, config=config)
 
-    # build the test datasets for target and source
-    if val == 1:
-        target_test_dataset = target_DatasetClass(config["target_dataset_root"],
-                split=config["val_split"], transform=target_test_transforms,
-                da_flag = True,config=config)
-
-        source_test_dataset = source_DatasetClass(config["source_dataset_root"],
-                    split=config["val_split"], transform=source_test_transforms,
-                    da_flag = True, config=config)
-    elif val == 2:
-        target_test_dataset = target_DatasetClass(config["target_dataset_root"],
-                split=config["train_split"], transform=target_test_transforms,
-                da_flag = True,config=config)
-
-        source_test_dataset = source_DatasetClass(config["source_dataset_root"],
-                    split=config["train_split"],
-                    transform=source_test_transforms,
-                    da_flag=True, config=config)
-    else: 
-        # Loading the test datasets
-        print(" !!!!!!!!!!!!!!!!!Taking the test split !!!!!!!!!!!!!!!!!!!!!!!")
-        source_test_dataset=source_DatasetClass(config["source_dataset_root"],
-                    split=config["test_split"], transform=source_test_transforms,
-                    da_flag=True, config=config)
-        target_test_dataset=target_DatasetClass(config["target_dataset_root"],
-                split=config["test_split"], transform=target_test_transforms,
+    # Loading the test datasets
+    source_test_dataset=source_DatasetClass(config["source_dataset_root"],
+                split=config["val_split"], transform=source_test_transforms,
                 da_flag=True, config=config)
+    target_test_dataset=target_DatasetClass(config["target_dataset_root"],
+            split=config["val_split"], transform=target_test_transforms,
+            da_flag=True, config=config)
 
     # create the collate function
     if len(cat_list_changed) > 0:
@@ -142,15 +126,14 @@ def validation_process_training(net, config, source_test_loader, target_test_loa
     val_data_src = \
         validation(net, config, source_test_loader, N_LABELS, epoch, disable_log, device, ce_loss_layer, loss_layer, target_flag=False, list_ignore_classes=list_ignore_classes)
     logging.info("Source mIoU per class: {}".format(val_data_src["seg_iou_per_class"]))
-    if config["in_seg_loss"]:
-        logging.info("Source inside mIoU per class: {}".format(val_data_src["seg_inside_iou_per_class"]))
+    
     # Validation on TARGET
     val_data_trg = \
         validation(net, config, target_test_loader, N_LABELS, epoch, disable_log, device, ce_loss_layer, loss_layer, target_flag=False, list_ignore_classes=list_ignore_classes)
     logging.info("Target per class mIoU: {}".format(val_data_trg["seg_iou_per_class"]))
-    if config["in_seg_loss"]:
-        logging.info("Target inside mIoU per class: {}".format(val_data_trg["seg_inside_iou_per_class"]))
     return val_data_src, val_data_trg
+
+
 def construct_network(config, logging):
         latent_size = config["network_latent_size"]
         backbone = config["network_backbone"]
@@ -202,14 +185,6 @@ def ignore_selection(idx=-1):
         return []
     elif idx == 0:
         return [0]
-    elif idx == 1:
-        # SK original classes (20), mapped to noise of DA
-        return [0, 7, 8, 12, 13, 14, 18, 19]
-    elif idx == 2:
-        # NS original classes (17), mapped to noise of NS 
-        return [0, 1, 8, 12, 15]
-    else:
-        return []
 
 
 class metrics_holder():
@@ -270,15 +245,12 @@ def save_val_model(config, data_saver):
     savedir_root = data_saver["savedir_root"]
     best_ckpt_mioU_target = data_saver["best_ckpt_mioU_target"]
     best_ckpt_epoch = data_saver["best_ckpt_epoch"]
-    ######################################
-    # save the training logs
-    if not config["fast_rep_flag"]:
-        train_log_data = train_log_data_da(metrics, metrics_target, train_iter_count, _run, writer, config)
-        logs_file(os.path.join(savedir_root, "logs_train.csv"), train_iter_count, train_log_data)
     
-
+    
     ###################################### Validation during Training ####################################################
-    if not config["fast_rep_flag"] or (epoch+1)%5==0 or (epoch+1)%config["val_interval"]==0:
+    if (epoch+1)%config["val_interval"]==0:
+        
+        #Validation
         val_data_src, val_data_trg= validation_process_training(net, config, source_test_loader,\
                 target_test_loader, N_LABELS, epoch, disable_log, device, ce_loss_layer, loss_layer, list_ignore_classes, logging)
             
@@ -302,3 +274,48 @@ def save_val_model(config, data_saver):
             logging.info("No new best target mIou, best remains: {} from epoch {}".format(best_ckpt_mioU_target, best_ckpt_epoch))
     
     return best_ckpt_mioU_target, best_ckpt_epoch
+
+def calculation_metrics(metrics_holder, outputs, occupancies, loss_seg, loss, recons_loss, output_seg=None, source_data=None, ignore_list=[], output_data=None):
+    output_np = (torch.sigmoid(outputs).cpu().detach().numpy() > 0.5).astype(int)
+    target_np = occupancies.cpu().numpy().astype(int)
+    
+    metrics_holder.counter +=1
+    #### Semantic Segmentation
+    output_seg_np = np.argmax(output_seg[:,1:].cpu().detach().numpy(), axis=1) + 1 #As the 0 dimension (class ignore) should not be taken into account for finding the max value
+    target_seg_np = source_data["y"].cpu().numpy().astype(int)
+
+    cm_seg_head_ = confusion_matrix(target_seg_np.ravel(), output_seg_np.ravel(), labels=list(range(metrics_holder.config["nb_classes"])))
+    metrics_holder.cm_seg_head += cm_seg_head_
+    train_seg_head_oa = metrics.stats_overall_accuracy(metrics_holder.cm_seg_head, ignore_list=ignore_list)
+    train_seg_head_maa, train_acc_per_class = metrics.stats_accuracy_per_class(metrics_holder.cm_seg_head, ignore_list=ignore_list) #First return value is the mean IoU
+    train_seg_head_miou, train_seg_iou_per_class = metrics.stats_iou_per_class(metrics_holder.cm_seg_head, ignore_list=ignore_list) #First return value is the mean IoU
+    if not(loss_seg is None):
+        metrics_holder.error_seg_head += loss_seg.item()
+    # point wise scores on training segmentation head
+    train_seg_head_loss = metrics_holder.error_seg_head / metrics_holder.cm_seg_head.sum()
+    
+    
+    #### Occupany
+    cm_ = confusion_matrix(
+        target_np.ravel(), output_np.ravel(), labels=list(range(metrics_holder.cm.shape[0]))
+    )
+    metrics_holder.cm += cm_
+
+    metrics_holder.error += loss.item()
+    metrics_holder.error_recons += recons_loss.item()
+
+    # point wise scores on training
+    train_oa = metrics.stats_overall_accuracy(metrics_holder.cm)
+    train_aa = metrics.stats_accuracy_per_class(metrics_holder.cm)[0]
+    train_iou = metrics.stats_iou_per_class(metrics_holder.cm)[0]
+    train_aloss = metrics_holder.error / metrics_holder.cm.sum()
+    train_aloss_recons = metrics_holder.error_recons / metrics_holder.cm.sum()
+    train_aloss_additional = metrics_holder.error_additional / metrics_holder.cm.sum()
+
+    
+    return_data =  {"train_oa":train_oa, "train_aa":train_aa, "train_aloss":train_aloss,"train_aloss_recons":train_aloss_recons, "train_aloss_additional":train_aloss_additional,\
+        "train_iou":train_iou, "train_seg_head_miou":train_seg_head_miou,"train_seg_head_maa":train_seg_head_maa, "train_seg_head_loss": train_seg_head_loss,\
+    "accuracy_per_class": train_acc_per_class, "seg_iou_per_class": train_seg_iou_per_class}
+    return return_data
+
+    

@@ -1,19 +1,15 @@
 
+import logging
 import os
 
 import numpy as np
 import torch
 import torch.nn.functional as F
-from torch_geometric.data import Data, Dataset
-
-import logging
-
-import numpy as np
 from nuscenes import NuScenes as NuScenes_
 from nuscenes.utils.data_classes import LidarPointCloud
 from nuscenes.utils.data_io import load_bin_file
 from nuscenes.utils.splits import create_splits_scenes
-
+from torch_geometric.data import Data, Dataset
 
 
 def class_mapping_ns():
@@ -89,6 +85,39 @@ def class_mapping_da(config):
                 30: 10,
                 31: 0,
                 }
+            elif config["target_dataset_name"] == "SemanticPOSS" or config["source_dataset_name"] == "SemanticPOSS" :
+                return {0:0,#noise-->unlabeled
+                1:0,#animal-->unlabeled
+                2:1,#human.pedestrian.adult-->person
+                3:1,#human.pedestrian.child-->person
+                4:1,#human.pedestrian.construction_worker-->person
+                5:0,#human.pedestrian.personal_mobility-->unlabeled
+                6:1,#human.pedestrian.police_officer-->person
+                7:0,#human.pedestrian.stroller-->unlabeled
+                8:0,#human.pedestrian.wheelchair-->unlabeled
+                9:6,#movable_object.barrier-->manmade
+                10:0,#movable_object.debris-->unlabeled
+                11:0,#movable_object.pushable_pullable-->unlabeled
+                12:6,#movable_object.trafficcone-->manmade
+                13:0,#static_object.bicycle_rack-->unlabeled
+                14:2,#vehicle.bicycle-->bike
+                15:3,#vehicle.bus.bendy-->car
+                16:3,#vehicle.bus.rigid-->car
+                17:3,#vehicle.car-->car
+                18:3,#vehicle.construction-->car
+                19:0,#vehicle.emergency.ambulance-->unlabeled
+                20:0,#vehicle.emergency.police-->unlabeled
+                21:2,#vehicle.motorcycle-->bike
+                22:3,#vehicle.trailer-->car
+                23:3,#vehicle.truck-->car
+                24:4,#flat.driveable_surface-->ground
+                25:4,#flat.other-->ground
+                26:4,#flat.sidewalk-->ground
+                27:4,#flat.terrain-->ground
+                28:6,#static.manmade-->manmade
+                29:0,#static.other-->unlabeled
+                30:5,#static.vegetation-->vegetation
+                31:0 }#vehicle.ego-->unlabeled
             else: 
                 raise ValueError("No mapping")
 
@@ -102,8 +131,8 @@ class NuScenes(Dataset):
         super().__init__(root, transform, None)
 
         self.config = config
-        #self.nusc = NuScenes_(version=self.config['ns_dataset_version'], dataroot=self.root, verbose=True)
-        self.nusc = NuScenes_(version='v1.0-mini', dataroot=self.root, verbose=True)
+        self.nusc = NuScenes_(version=self.config['ns_dataset_version'], dataroot=self.root, verbose=True)
+        #self.nusc = NuScenes_(version='v1.0-mini', dataroot=self.root, verbose=True)
 
         self.da_flag = da_flag
         logging.info("Nuscenes dataset - creating splits")

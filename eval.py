@@ -1,20 +1,20 @@
 import logging
 import os
+
 import pandas as pd
 import torch
-
 from torch.utils.tensorboard import SummaryWriter
 
 import datasets
 import networks
-
 from config import ex
 from utils.logging_files_functions import val_log_data_da
-from utils.shared_funcs import (count_parameters, da_get_dataloader, get_bbdir_root,
-                                get_savedir_root, ignore_selection, logs_file,
-                                save_config_file)
+from utils.shared_funcs import (count_parameters, da_get_dataloader,
+                                get_bbdir_root, get_savedir_root,
+                                ignore_selection, logs_file, save_config_file)
 from utils.transforms import da_get_inputs
 from utils.utils import get_bbdir_root, get_savedir_root, validation
+
 
 def load_student_model(checkpoint_path):
     # reloads model

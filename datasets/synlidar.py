@@ -1,20 +1,117 @@
-import os
-
-import numpy as np
-import torch
-from torch_geometric.data import Data, Dataset
-
 import logging
+import os
 from pathlib import Path
 
 # Basic libs
 import numpy as np
+import torch
 import yaml
+from torch_geometric.data import Data, Dataset
 
+
+def class_mapping_da(config):
+    #Changes of mapping in DA case
+    if config["source_dataset_name"] == "SemanticKITTI" or  config["target_dataset_name"] == "SemanticKITTI":
+        learning_map={
+            0: 0,  # "unlabeled"
+            1: 1,  # "car"
+            2: 4,  # "pick-up"
+            3: 4,  # "truck"
+            4: 5,  # "bus"
+            5: 2,  # "bicycle"
+            6: 3,  # "motorcycle"
+            7: 5,  # "other-vehicle"
+            8: 9,  # "road"
+            9: 11,  # "sidewalk"
+            10: 10,  # "parking"
+            11: 12,  # "other-ground"
+            12: 6, # "female"
+            13: 6,  # "male"
+            14: 6,  # "kid"
+            15: 6,  # "crowd"
+            16: 7,  # "bicyclist"
+            17: 8,  # "motorcyclist"
+            18: 13,  # "building"
+            19: 0,  # "other-structure"
+            20: 15,  # "vegetation"
+            21: 16,  # "trunk"
+            22: 17,  # "terrain"
+            23: 19,  # "traffic-sign"
+            24: 18,  # "pole"
+            25: 0,  # "traffic-cone"
+            26: 14,  # "fence"
+            27: 0,  # "garbage-can"
+            28: 0,  # "electric-box"
+            29: 0,  # "table"
+            30: 0,  # "chair"
+            31: 0,  # "bench"
+            32: 0  # "other-object"
+        }
+        learning_map_inv ={ # inverse of previous map
+            0: 0,     
+            1: 1,     
+            2: 5,    
+            3: 6,     
+            4: 2,     
+            5: 7,     
+            6: 12,
+            7: 16,  
+            8: 17,
+            9: 8, 
+            10: 10, 
+            11: 9,
+            12:11,
+            13:18,
+            14:26,
+            15:20,
+            16:21,
+            17:22,
+            18:24,
+            19:23,
+        
+            }
+    elif config["source_dataset_name"] == "SemanticPOSS" or  config["target_dataset_name"] == "SemanticPOSS":
+        learning_map={0: 0,  # "unlabeled"
+                1: 3,  # "car"
+            2: 0,  # "pick-up"
+            3: 0,  # "truck"
+            4: 0,  # "bus"
+            5: 12,  # "bicycle"
+            6: 0,  # "motorcycle"
+            7: 0,  # "other-vehicle"
+            8: 13,  # "road"
+            9: 0,  # "sidewalk"
+            10: 0,  # "parking"
+            11: 0,  # "other-ground"
+            12: 1,  # "female"
+            13: 1,  # "male"
+            14: 1,  # "kid"
+            15: 1,  # "crowd"
+            16: 2,  # "bicyclist"
+            17: 2,  # "motorcyclist"
+            18: 9,  # "building"
+            19: 0,  # "other-structure"
+            20: 5,  # "vegetation"
+            21: 4,  # "trunk"
+            22: 0,  # "terrain"
+            23: 6,  # "traffic-sign"
+            24: 7,  # "pole"
+            25: 10,  # "traffic-cone"
+            26: 11,  # "fence"
+            27: 8,  # "garbage-can"
+            28: 0,  # "electric-box"
+            29: 0,  # "table"
+            30: 0,  # "chair"
+            31: 0,  # "bench"
+            32: 0}  # "other-object"
+    else: 
+        raise ValueError("No mapping")
+
+
+    return learning_map
 
 class SynLidar(Dataset):
-    def __init__(self,
-                 root,
+    def __init__(self,root,
                  split="training",
                  transform=None, 
                  dataset_size=None,
@@ -34,19 +131,14 @@ class SynLidar(Dataset):
 
         # get the scenes
         assert(split in ["train", "val", "test", "verifying", "parametrizing"])
-        if split == "verifying":
-            self.sequences = ['{:02d}'.format(i) for i in range(13) if i == 7]
-        elif split == "parametrizing":
-            self.sequences = ['{:02d}'.format(i) for i in range(13) if (i != 8 and i != 7)]
-        elif split == "train":
+        
+        if split == "train":
             self.sequences = ['{:02d}'.format(i) for i in range(13)]
         elif split == "val":
             self.sequences = ['{:02d}'.format(i) for i in range(13) if i == 8] # Pseudo-Validation set, as seen during training.
         elif split == "test":
             raise ValueError('Unknown set for SynLidar data: ', split)
-        else:
-            raise ValueError('Unknown set for SynLidar data: ', split)
-
+        
         # get the filenames
         self.all_files = []
         for sequence in self.sequences:
@@ -108,80 +200,7 @@ class SynLidar(Dataset):
             32: "other-object"}
 
 
-        if self.da_flag: 
-            #Changes of mapping in DA case
-            if self.config["source_dataset_name"] == "SemanticKITTI" or  self.config["target_dataset_name"] == "SemanticKITTI":
-                learning_map={
-                    0: 0,  # "unlabeled"
-                    1: 1,  # "car"
-                    2: 4,  # "pick-up"
-                    3: 4,  # "truck"
-                    4: 5,  # "bus"
-                    5: 2,  # "bicycle"
-                    6: 3,  # "motorcycle"
-                    7: 5,  # "other-vehicle"
-                    8: 9,  # "road"
-                    9: 11,  # "sidewalk"
-                    10: 10,  # "parking"
-                    11: 12,  # "other-ground"
-                    12: 6, # "female"
-                    13: 6,  # "male"
-                    14: 6,  # "kid"
-                    15: 6,  # "crowd"
-                    16: 7,  # "bicyclist"
-                    17: 8,  # "motorcyclist"
-                    18: 13,  # "building"
-                    19: 0,  # "other-structure"
-                    20: 15,  # "vegetation"
-                    21: 16,  # "trunk"
-                    22: 17,  # "terrain"
-                    23: 19,  # "traffic-sign"
-                    24: 18,  # "pole"
-                    25: 0,  # "traffic-cone"
-                    26: 14,  # "fence"
-                    27: 0,  # "garbage-can"
-                    28: 0,  # "electric-box"
-                    29: 0,  # "table"
-                    30: 0,  # "chair"
-                    31: 0,  # "bench"
-                    32: 0  # "other-object"
-                }
-                learning_map_inv ={ # inverse of previous map
-                    0: 0,     
-                    1: 1,     
-                    2: 5,    
-                    3: 6,     
-                    4: 2,     
-                    5: 7,     
-                    6: 12,
-                    7: 16,  
-                    8: 17,
-                    9: 8, 
-                    10: 10, 
-                    11: 9,
-                    12:11,
-                    13:18,
-                    14:26,
-                    15:20,
-                    16:21,
-                    17:22,
-                    18:24,
-                    19:23,
-                
-                    }
-
-            else: 
-                raise ValueError("No mapping")
-    
-
-            sequences=["00","01","02","03","04","05","06","07","08","09","10","11","12"]
-        else:
-            with open(config_file, 'r') as stream:
-                doc = yaml.safe_load(stream)
-                all_labels = doc['labels']
-            learning_map = doc['learning_map']
-            #learning_map_inv = doc['learning_map_inv']
-            
+        learning_map = class_mapping_da(config)
         self.learning_map = np.zeros((np.max([k for k in learning_map.keys()]) + 1), dtype=np.int32)
         
         for k, v in learning_map.items():
@@ -249,7 +268,7 @@ class SynLidar(Dataset):
             label = label.reshape((-1))
             y = self.learning_map[label]
 
-        # points are annotated only until 50 m in SK
+        
         mask = np.linalg.norm(pos, axis=1)<50
         pos = pos[mask]
         y = y[mask]

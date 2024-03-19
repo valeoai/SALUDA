@@ -1,9 +1,18 @@
+from os import replace
+import numpy as np
+from torchvision import transforms
+from PIL import Image
+import random
+import logging
 import torch
 import re
-import numpy as np
+import math
+import numbers
 
 class FixedPoints(object):
+
     # extension of the Fixed points from torch_geometric with a given list of item to sample
+
     def __init__(self, num, replace=True, allow_duplicates=False, item_list=None):
         self.num = num
         self.replace = replace

@@ -24,7 +24,7 @@
 
 <br/>
 
-SALUDA has been accepted at 3DV 2024
+SALUDA has been accepted as a SPOTLIGHT at 3DV 2024
 
 <br/>
 
@@ -47,11 +47,35 @@ This code was implemented and tested with python 3.10, PyTorch 1.11.0 and CUDA 1
 The backbone is implemented with version 1.4.0 of [Torchsparse](https://github.com/mit-han-lab/torchsparse.)([Exact commit](https://github.com/mit-han-lab/torchsparse/commit/69c1034ddb285798619380537802ea0ff03aeba6))
 Additionally, [Sacred](https://github.com/IDSIA/sacred) 0.8.3 is used. 
 
+
+---
+## Datasets 
+
+For our experiments we use the following dataset [nuScenes](https://www.nuscenes.org/nuscenes), [SemanticKITTI](http://www.semantic-kitti.org/dataset.html), [SynthLiDAR](https://github.com/xiaoaoran/SynLiDAR) and [SemanticPOSS](http://www.poss.pku.edu.cn/semanticposs.html)
+
+Please note that we use in all our experiments the official SubDataset of SynthLiDAR. 
+The datasets should be placed in: data/
+
 ---
 
 ## Training 
 
-(not yet included, watch the repository to not miss the updates)
+1. Step:  Source/Target training with surface reconstruction regularization
+```
+nuScenes to SemanticKITTI
+python train_single_back.py --name='SALUDA_ns_sk' with da_ns_sk
+
+SynthLiDAR to SemanticKITTI
+python train_single_back.py --name='SALUDA_syn_sk' with da_syn_sk"
+
+nuScenes to SemanticPOSS
+python train_single_back.py --name='SALUDA_ns_poss' with da_ns_poss
+
+SynthLiDAR to SemanticPOSS (5 cm voxel size)
+python train_single_back.py --name='SALUDA_syn_poss' with da_syn_poss
+```
+
+In a second step the previously obtained models are further refined with a self-training. For this we rely on the code-basis of CoSMix, but adapt the code so that it contains only a simple self-training. We provide more details in the folder [self_training](self_training/README.md)
 
 ---
 
@@ -60,13 +84,13 @@ Additionally, [Sacred](https://github.com/IDSIA/sacred) 0.8.3 is used.
 Evaluation of a SALUDA model on nuScenes to SemanticKITTI: 
 
 ```
-python da_baseline_hyper.py --name='EVAL_SALUDA_ns_sk' with da_ns_sk network_decoder=InterpAllRadiusNoDirsNet network_decoder_k=1.0 save_dir=results_val/ ckpt_path_model=path/to/folder
+python eval.py --name='EVAL_SALUDA_ns_sk' with da_ns_sk network_decoder=InterpAllRadiusNoDirsNet network_decoder_k=1.0 save_dir=results_val/ ckpt_path_model=path/to/folder
 ```
 
 Evaluation on SyntheticLiDAR to SemanticKITTI:
 
 ```
-python da_baseline_hyper.py --name='EVAL_SALUDA_syn_sk' with da_syn_sk network_decoder=InterpAllRadiusNoDirsNet network_decoder_k=1.0 save_dir=results_val/ ckpt_path_model=path/to/folder
+python eval.py --name='EVAL_SALUDA_syn_sk' with da_syn_sk network_decoder=InterpAllRadiusNoDirsNet network_decoder_k=1.0 save_dir=results_val/ ckpt_path_model=path/to/folder
 ```
 
 ---
@@ -77,7 +101,7 @@ DA Setting | Method | Backbone | Link |
 nuScenes to SemanticKITTI | SALUDA w/o ST |TorchSparse-MinkUNet  | [CKPT](https://github.com/valeoai/SALUDA/releases/download/v0.0.0/ns_sk_saluda_wo_st.zip) |
 SyntheticLiDAR to SemanticKITTI | SALUDA  w/o ST |TorchSparse-MinkUNet  |  [CKPT](https://github.com/valeoai/SALUDA/releases/download/v0.0.0/syn_sk_saluda_wo_st.zip) |
 
-The checkpoint should is placed in a folder. The link to this folder should be given to the "ckpt_path_model" parameter.  
+The checkpoint should be placed in a folder. The link to this folder should be given to the "ckpt_path_model" parameter.  
 
 ---
 
