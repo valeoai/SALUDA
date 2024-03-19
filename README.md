@@ -41,6 +41,20 @@ Learning models on one labeled dataset that generalize well on another domain is
 
 ---
 
+## Citation
+
+```
+@article{michele2024saluda,
+  title={{SALUDA}: Surface-based Automotive Lidar Unsupervised Domain Adaptation},
+  author={Michele, Bjoern and Boulch, Alexandre and Puy, Gilles and Vu, Tuan-Hung and Marlet, Renaud and Courty, Nicolas},
+  booktitle={2024 International Conference on 3D Vision (3DV)},
+  year={2024},
+  organization={IEEE}
+}
+```
+
+
+
 ## Dependencies
 
 This code was implemented and tested with python 3.10, PyTorch 1.11.0 and CUDA 11.3.
