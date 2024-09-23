@@ -248,7 +248,7 @@ def save_val_model(config, data_saver):
     
     
     ###################################### Validation during Training ####################################################
-    if (epoch+1)%config["val_interval"]==0:
+    if (epoch+1)%config["val_interval"]==0 or train_iter_count >= config["training_iter_nbr"]:
         
         #Validation
         val_data_src, val_data_trg= validation_process_training(net, config, source_test_loader,\

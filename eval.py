@@ -83,7 +83,7 @@ def main_run(_config, _run):
         val_number = -1
     else:
         val_number = 1  # 1: verifying split, 2 train split, else: test split
-    dataloader_dict = da_get_dataloader(source_DatasetClass, target_DatasetClass, config, net, val=val_number)
+    dataloader_dict = da_get_dataloader(source_DatasetClass, target_DatasetClass, config, net)
     source_train_loader = dataloader_dict ["source_train_loader"]
     source_test_loader = dataloader_dict ["source_test_loader"]
     target_train_loader = dataloader_dict ["target_train_loader"]

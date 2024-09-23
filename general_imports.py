@@ -1,5 +1,4 @@
 import os
-#from cv2 import add
 from matplotlib.pyplot import fill
 import numpy as np
 import yaml
@@ -12,12 +11,6 @@ import torch_geometric.transforms as T
 import torch
 import torch.nn.functional as F
 from torch.utils.tensorboard import SummaryWriter
-
-# lightconvpoint imports
-#from lightconvpoint.datasets.dataset import get_dataset
-#import lightconvpoint.utils.transforms as lcp_T
-#from lightconvpoint.utils.logs import logs_file
-#from lightconvpoint.utils.misc import dict_to_device
 
 from utils.utils import wblue, wgreen
 import utils.metrics as metrics
@@ -36,7 +29,3 @@ from utils.shared_funcs import resume_model, save_val_model
 from utils.transforms import CreateDirs, CreateInputs, CreateNonManifoldPoints, UseAsFeatures, Transpose
 import datasets
 import networks
-#import argparse
-
-#from datetime import datetime
-#from functools import partial

@@ -98,7 +98,7 @@ def da_get_transforms(config, train=True, source_flag=True):
     if "TorchSparse" in config["network_backbone"]:
         logging.info("Transforms - TorchSparseQuantize")
         transforms.append(TorchSparseQuantize(config["voxel_size"]))
-
+    
     transforms.append(ToDict())
     transforms = T.Compose(transforms)
 

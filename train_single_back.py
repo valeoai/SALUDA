@@ -144,7 +144,7 @@ def main(_config, _run):
             writer.add_scalar(f"training.src.loss",loss, train_iter_count)
             
             loss.backward()
-            
+            optimizer.step()
             metrics = calculation_metrics(metrics_holder_source, outputs, occupancies, loss_seg, loss,\
                         recons_loss, output_seg=output_seg, source_data=source_data, ignore_list=list_ignore_classes, output_data=output_data)
             
@@ -159,6 +159,7 @@ def main(_config, _run):
             # #####################################################################################
     
             #Training on the same backbone as source (but only reconstruction loss)
+            optimizer.zero_grad()
             output_data, output_seg_target = net.forward_pretraining(target_data)
             outputs = output_data["predictions"].squeeze(-1)
             occupancies = output_data["occupancies"].float()
