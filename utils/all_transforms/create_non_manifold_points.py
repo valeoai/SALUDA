@@ -10,7 +10,7 @@ class CreateNonManifoldPoints(object):
         label = data["y"]
 
         # build the non manifold points
-        if "dirs" in data.keys:
+        if "dirs" in data.keys():
             dirs = data["dirs"]
         else:
             dirs = F.normalize(pos, dim=1)

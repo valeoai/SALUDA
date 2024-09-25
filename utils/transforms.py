@@ -11,7 +11,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch_geometric.transforms as T
-import torch_sparse
+import torchsparse
 
 from .all_transforms import *
 
