@@ -34,7 +34,7 @@ class RandomRotate(object):
             if key in self.item_list:
                 if torch.is_tensor(item):
                     data[key] = torch.matmul(item, matrix.to(item.dtype).to(item.device))
-                    if ("second_" + key) in data.keys:
+                    if ("second_" + key) in data.keys():
                         data["second_" + key] = torch.matmul(data["second_" + key], matrix.to(item.dtype).to(item.device))
 
         return data

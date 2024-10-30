@@ -11,7 +11,7 @@ class RandomFlip(object):
         if torch.randint(0, 2, size=(1,)).item():
             for item in self.item_list:
                 data[item][:,0] = -data[item][:,0]
-                if ("second_" + item) in data.keys:
+                if ("second_" + item) in data.keys():
                     data["second_" + item][:,0] = -data["second_" + item][:,0]
         
         return data

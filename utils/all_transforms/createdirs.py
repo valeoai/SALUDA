@@ -10,7 +10,7 @@ class CreateDirs(object):
 
 
         # if second frame --> decimation of the second frame
-        if "second_pos" in data.keys:
+        if "second_pos" in data.keys():
             second_dirs = F.normalize(data["second_pos"], dim=1)
             data["second_dirs"] = second_dirs
 
